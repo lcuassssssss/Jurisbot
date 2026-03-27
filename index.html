@@ -299,7 +299,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 function activarAdmin() {
-  usuarioActivo = true; usedFree = false;
+  usuarioActivo = true; usuarioActual = 'admin'; usedFree = false;
   document.getElementById('free-note').innerHTML = '✓ Modo admin · <strong style="color:var(--verde)">Búsquedas ilimitadas</strong>';
   document.getElementById('nav-auth').innerHTML = '<span class="nav-user"><strong>Admin</strong><button class="btn-logout" onclick="logout()">Salir</button></span>';
 }
