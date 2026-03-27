@@ -35,6 +35,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         reason: p.label,
+        payer_email: email,
         auto_recurring: {
           frequency: p.frecuencia,
           frequency_type: p.tipo,
