@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JurisBot — Jurisprudencia Argentina con IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --verde: #1a7a5e;
+  --verde-dark: #0f5a43;
+  --verde-light: #e8f5f0;
+  --verde-mid: #2da882;
+  --negro: #0e0e0e;
+  --gris: #f5f4f0;
+  --gris-medio: #9a9890;
+  --blanco: #fefefe;
+  --borde: #e0ddd6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--blanco);
+  color: var(--negro);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 3rem;
+  background: rgba(254,254,254,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--borde);
+}
+.nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--negro); text-decoration: none; }
+.nav-logo span { color: var(--verde); }
+.nav-links { display: flex; gap: 2rem; align-items: center; }
+.nav-links a { font-size: 14px; color: var(--gris-medio); text-decoration: none; font-weight: 400; transition: color 0.2s; }
+.nav-links a:hover { color: var(--negro); }
+.nav-cta { background: var(--verde); color: white !important; padding: 8px 20px; border-radius: 6px; font-weight: 500 !important; font-size: 14px !important; transition: background 0.2s !important; }
+.nav-cta:hover { background: var(--verde-dark) !important; color: white !important; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8rem 2rem 4rem;
+  position: relative;
+  background: var(--blanco);
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(26,122,94,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(26,122,94,0.05) 0%, transparent 70%);
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: 0; opacity: 0.03;
+  background-image: linear-gradient(var(--negro) 1px, transparent 1px), linear-gradient(90deg, var(--negro) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-content { position: relative; z-index: 1; text-align: center; max-width: 780px; width: 100%; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--verde-light); color: var(--verde-dark);
+  font-size: 12px; font-weight: 500; padding: 6px 16px;
+  border-radius: 100px; border: 1px solid rgba(26,122,94,0.2);
+  margin-bottom: 2rem; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.hero-badge-dot { width: 6px; height: 6px; background: var(--verde); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.8rem, 6vw, 4.2rem);
+  font-weight: 700; line-height: 1.15;
+  color: var(--negro); margin-bottom: 1.25rem;
+  letter-spacing: -1px;
+}
+.hero h1 em { font-style: italic; color: var(--verde); }
+.hero-sub {
+  font-size: 17px; color: var(--gris-medio); font-weight: 300;
+  max-width: 520px; margin: 0 auto 2.5rem; line-height: 1.7;
+}
+
+/* BUSCADOR */
+.search-wrapper {
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.06);
+  max-width: 700px; margin: 0 auto 1.5rem; width: 100%;
+  transition: box-shadow 0.2s;
+}
+.search-wrapper:focus-within { box-shadow: 0 8px 40px rgba(26,122,94,0.12); border-color: rgba(26,122,94,0.3); }
+.search-tabs {
+  display: flex; gap: 4px; margin-bottom: 1rem;
+  background: var(--gris); border-radius: 8px; padding: 4px;
+}
+.stab {
+  flex: 1; padding: 7px 10px; border: none; background: transparent;
+  font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 400;
+  color: var(--gris-medio); border-radius: 6px; cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.stab.active { background: var(--blanco); color: var(--negro); font-weight: 500; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.search-input-row { display: flex; gap: 10px; align-items: flex-end; }
+.search-input-row textarea {
+  flex: 1; border: none; outline: none; resize: none;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 300;
+  color: var(--negro); background: transparent; min-height: 52px; line-height: 1.6;
+}
+.search-input-row textarea::placeholder { color: #c0bdb5; }
+.btn-buscar {
+  background: var(--verde); color: white; border: none;
+  padding: 12px 24px; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.btn-buscar:hover { background: var(--verde-dark); transform: translateY(-1px); }
+.btn-buscar:active { transform: translateY(0); }
+.btn-buscar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.source-row { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--borde); align-items: center; }
+.source-label { font-size: 11px; color: var(--gris-medio); margin-right: 4px; }
+.src-btn {
+  font-size: 11px; padding: 4px 12px; border-radius: 100px;
+  border: 1px solid var(--borde); background: transparent;
+  color: var(--gris-medio); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.src-btn.active { background: var(--verde-light); color: var(--verde-dark); border-color: rgba(26,122,94,0.3); }
+.free-note { font-size: 12px; color: var(--gris-medio); text-align: center; }
+.free-note strong { color: var(--verde); }
+
+/* RESULTADOS */
+.results-panel {
+  max-width: 700px; margin: 0 auto; width: 100%;
+  position: relative; z-index: 1;
+}
+.results-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 0 12px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--borde);
+}
+.results-count { font-size: 13px; color: var(--gris-medio); }
+.result-card {
+  background: var(--blanco); border: 1px solid var(--borde);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 8px;
+  transition: all 0.15s; animation: fadeUp 0.3s ease both;
+}
+.result-card:hover { border-color: rgba(26,122,94,0.3); box-shadow: 0 2px 12px rgba(26,122,94,0.06); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.result-card:nth-child(1){animation-delay:0.05s}
+.result-card:nth-child(2){animation-delay:0.1s}
+.result-card:nth-child(3){animation-delay:0.15s}
+.result-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.result-num { font-size: 11px; color: var(--gris-medio); }
+.result-fuente {
+  font-size: 10px; padding: 2px 8px; border-radius: 100px;
+  background: var(--verde-light); color: var(--verde-dark); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.result-title {
+  font-size: 14px; font-weight: 500; color: var(--verde-dark);
+  text-decoration: none; line-height: 1.45; display: block; margin-bottom: 4px;
+}
+.result-title:hover { color: var(--verde); text-decoration: underline; }
+.result-url { font-size: 11px; color: var(--gris-medio); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* BLUR / PAYWALL */
+.blur-card {
+  position: relative; border-radius: 10px; margin-bottom: 8px; overflow: hidden;
+}
+.blur-inner {
+  filter: blur(5px); pointer-events: none; user-select: none;
+  background: var(--blanco); border: 1px solid var(--borde);
+  border-radius: 10px; padding: 14px 18px;
+}
+.blur-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(254,254,254,0.5);
+}
+.lock-pill {
+  background: var(--blanco); border: 1px solid var(--borde);
+  border-radius: 100px; padding: 6px 16px; font-size: 12px;
+  color: var(--gris-medio); display: flex; align-items: center; gap: 6px;
+}
+.lock-icon { width: 12px; height: 12px; }
+
+/* PAYWALL BANNER */
+.paywall-banner {
+  max-width: 700px; margin: 1.5rem auto 0; width: 100%;
+  background: linear-gradient(135deg, var(--verde-dark), var(--verde));
+  border-radius: 16px; padding: 2rem;
+  display: none; position: relative; z-index: 1;
+  animation: fadeUp 0.4s ease;
+}
+.paywall-banner h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: white; margin-bottom: 8px; }
+.paywall-banner p { font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 1.5rem; line-height: 1.6; }
+.plan-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+.plan {
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 12px; padding: 1.2rem;
+}
+.plan.highlight { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.5); }
+.plan-tag { font-size: 10px; background: white; color: var(--verde-dark); padding: 2px 10px; border-radius: 100px; font-weight: 500; display: inline-block; margin-bottom: 8px; }
+.plan-name { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
+.plan-price { font-size: 26px; font-weight: 500; color: white; }
+.plan-price small { font-size: 12px; font-weight: 300; }
+.plan-features { margin-top: 10px; }
+.plan-features li { font-size: 12px; color: rgba(255,255,255,0.8); list-style: none; padding: 2px 0; }
+.plan-features li::before { content: "✓ "; opacity: 0.7; }
+.btn-suscribir {
+  width: 100%; padding: 13px; border-radius: 10px; border: none;
+  background: white; color: var(--verde-dark); font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.btn-suscribir:hover { background: var(--verde-light); transform: translateY(-1px); }
+
+/* RESPONSE BOX */
+.response-box {
+  background: var(--blanco); border: 1px solid var(--borde);
+  border-radius: 12px; padding: 1.5rem;
+  font-size: 14px; line-height: 1.8; color: var(--negro);
+  white-space: pre-wrap; animation: fadeUp 0.3s ease;
+}
+.response-label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--gris-medio); margin-bottom: 12px; font-weight: 500;
+}
+
+/* LOADING */
+.loading { text-align: center; padding: 3rem 1rem; color: var(--gris-medio); font-size: 14px; }
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid var(--borde); border-top-color: var(--verde);
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+  margin-right: 10px; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* STATS */
+.stats {
+  display: flex; gap: 3rem; justify-content: center;
+  padding: 4rem 2rem; border-top: 1px solid var(--borde);
+  position: relative; z-index: 1;
+}
+.stat-item { text-align: center; }
+.stat-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 700; color: var(--verde); }
+.stat-label { font-size: 13px; color: var(--gris-medio); margin-top: 4px; }
+
+/* USED NOTICE */
+.used-notice {
+  max-width: 700px; margin: 1rem auto 0; width: 100%;
+  background: #fff8e8; border: 1px solid #f0d070;
+  border-radius: 10px; padding: 12px 16px;
+  font-size: 13px; color: #7a5a00; position: relative; z-index: 1;
+  display: none; animation: fadeUp 0.3s ease;
+}
+
+/* EMPTY */
+.empty-state { padding: 2.5rem 1rem; text-align: center; color: var(--gris-medio); font-size: 14px; }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+  .hero { padding: 6rem 1.25rem 3rem; }
+  .plan-row { grid-template-columns: 1fr; }
+  .stats { flex-direction: column; gap: 1.5rem; }
+  .search-input-row { flex-direction: column; }
+  .btn-buscar { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Juris<span>Bot</span></a>
+  <div class="nav-links">
+    <a href="#buscar">Buscar fallos</a>
+    <a href="#buscar">Consulta legal</a>
+    <a href="#precios">Precios</a>
+    <a href="#precios" class="nav-cta">Suscribirme</a>
+  </div>
+</nav>
+
+<section class="hero" id="buscar">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Jurisprudencia argentina con inteligencia artificial
+    </div>
+    <h1>Encontrá el fallo que<br>necesitás, <em>al instante</em></h1>
+    <p class="hero-sub">
+      Buscá jurisprudencia en SAIJ y CSJN, consultá el CCyC y la Constitución, resumí fallos con IA.
+    </p>
+
+    <!-- BUSCADOR -->
+    <div class="search-wrapper">
+      <div class="search-tabs">
+        <button class="stab active" onclick="setTab('fallos',this)">Buscar fallos</button>
+        <button class="stab" onclick="setTab('consulta',this)">Consulta legal</button>
+        <button class="stab" onclick="setTab('resumen',this)">Resumir fallo</button>
+        <button class="stab" onclick="setTab('articulos',this)">CCyC / CN</button>
+      </div>
+      <div class="search-input-row">
+        <textarea id="query" rows="2" placeholder="Ejemplo: despido sin causa, daños y perjuicios..."></textarea>
+        <button class="btn-buscar" id="btn-buscar" onclick="buscar()">Buscar →</button>
+      </div>
+      <div class="source-row" id="source-row">
+        <span class="source-label">Fuente:</span>
+        <button class="src-btn active" onclick="setFuente('ambas',this)">SAIJ + CSJN</button>
+        <button class="src-btn" onclick="setFuente('saij',this)">Solo SAIJ</button>
+        <button class="src-btn" onclick="setFuente('csjn',this)">Solo CSJN</button>
+      </div>
+    </div>
+
+    <p class="free-note" id="free-note"><strong>1 búsqueda gratuita</strong> · Sin registro</p>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div class="results-panel" id="results-panel" style="margin-top:1.5rem;">
+    <div class="empty-state">Tu resultado aparecerá aquí</div>
+  </div>
+
+  <div class="used-notice" id="used-notice">
+    Ya usaste tu búsqueda gratuita. Suscribite para acceder a resultados ilimitados y todas las funciones con IA.
+  </div>
+
+  <!-- PRECIOS / PAYWALL -->
+  <div id="precios"></div>
+  <div class="paywall-banner" id="paywall">
+    <h3>Desbloqueá JurisBot completo</h3>
+    <p>Accedé a 20 resultados por búsqueda, consultas legales con IA, resumen de fallos y artículos del CCyC y CN sin límites.</p>
+    <div class="plan-row">
+      <div class="plan">
+        <div class="plan-name">Plan mensual</div>
+        <div class="plan-price">$45.000 <small>/ mes</small></div>
+        <ul class="plan-features">
+          <li>Búsquedas ilimitadas</li>
+          <li>20 resultados por búsqueda</li>
+          <li>Consultas con IA</li>
+          <li>Resumen de fallos</li>
+          <li>Artículos CCyC y CN</li>
+        </ul>
+        <button class="btn-suscribir btn-suscribir-secondary" onclick="suscribir('mensual')" style="margin-top:1rem;background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.4);">Elegir mensual →</button>
+      </div>
+      <div class="plan highlight">
+        <div class="plan-tag">Más popular</div>
+        <div class="plan-name">Plan anual</div>
+        <div class="plan-price">$499.000 <small>/ año</small></div>
+        <ul class="plan-features">
+          <li>Todo lo del plan mensual</li>
+          <li>Ahorrás $41.000 por año</li>
+          <li>Soporte prioritario</li>
+          <li>Acceso anticipado a nuevas funciones</li>
+        </ul>
+        <button class="btn-suscribir" onclick="suscribir('anual')" style="margin-top:1rem;">Elegir anual →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-item"><div class="stat-num">SAIJ</div><div class="stat-label">Sistema Argentino de Información Jurídica</div></div>
+    <div class="stat-item"><div class="stat-num">CSJN</div><div class="stat-label">Corte Suprema de Justicia de la Nación</div></div>
+    <div class="stat-item"><div class="stat-num">IA</div><div class="stat-label">Análisis y resumen con inteligencia artificial</div></div>
+  </div>
+</section>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+
+// ─── STRIPE ─────────────────────────────────────────────────────────────────
+// Reemplazá estos IDs con los de tu dashboard de Stripe
+const STRIPE_PUBLIC_KEY = 'pk_live_REEMPLAZAR_CON_TU_CLAVE_PUBLICA';
+const STRIPE_PRICE_MENSUAL = 'price_REEMPLAZAR_ID_MENSUAL';
+const STRIPE_PRICE_ANUAL   = 'price_REEMPLAZAR_ID_ANUAL';
+
+async function suscribir(plan) {
+  const stripe = Stripe(STRIPE_PUBLIC_KEY);
+  const priceId = plan === 'anual' ? STRIPE_PRICE_ANUAL : STRIPE_PRICE_MENSUAL;
+  const { error } = await stripe.redirectToCheckout({
+    lineItems: [{ price: priceId, quantity: 1 }],
+    mode: 'subscription',
+    successUrl: window.location.origin + '?suscripcion=ok',
+    cancelUrl: window.location.origin + '?suscripcion=cancelada',
+  });
+  if (error) alert('Error al iniciar el pago: ' + error.message);
+}
+// ────────────────────────────────────────────────────────────────────────────
+let usedFree = false;
+let currentTab = 'fallos';
+let currentFuente = 'ambas';
+
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const srcRow = document.getElementById('source-row');
+  const q = document.getElementById('query');
+  const btn = document.getElementById('btn-buscar');
+  srcRow.style.display = tab === 'fallos' ? 'flex' : 'none';
+  if (tab === 'fallos') { q.placeholder = 'Ejemplo: despido sin causa, daños y perjuicios...'; btn.textContent = 'Buscar →'; }
+  else if (tab === 'consulta') { q.placeholder = '¿Cuáles son los requisitos para demandar por daños y perjuicios?'; btn.textContent = 'Consultar →'; }
+  else if (tab === 'resumen') { q.placeholder = 'Pegá el texto del fallo o describí el caso...'; btn.textContent = 'Resumir →'; }
+  else if (tab === 'articulos') { q.placeholder = 'Ejemplo: artículo 1109 del CCyC, artículo 14 de la CN...'; btn.textContent = 'Buscar →'; }
+  document.getElementById('results-panel').innerHTML = '<div class="empty-state">Tu resultado aparecerá aquí</div>';
+  document.getElementById('paywall').style.display = 'none';
+  document.getElementById('used-notice').style.display = 'none';
+}
+
+function setFuente(f, el) {
+  currentFuente = f;
+  document.querySelectorAll('.src-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function buscar() {
+  const query = document.getElementById('query').value.trim();
+  if (!query) { document.getElementById('query').focus(); return; }
+  if (usedFree) {
+    document.getElementById('used-notice').style.display = 'block';
+    document.getElementById('paywall').style.display = 'block';
+    document.getElementById('paywall').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  usedFree = true;
+  document.getElementById('free-note').innerHTML = 'Búsqueda gratuita utilizada · <strong style="color:#c0392b">Suscribite para continuar</strong>';
+  document.getElementById('btn-buscar').disabled = true;
+  document.getElementById('results-panel').innerHTML = '<div class="loading"><span class="spinner"></span>Buscando...</div>';
+  document.getElementById('paywall').style.display = 'none';
+
+  try {
+    if (currentTab === 'fallos') await buscarFallos(query);
+    else await consultarIA(query);
+  } catch(e) {
+    document.getElementById('results-panel').innerHTML = '<div class="empty-state">Ocurrió un error. Intentá de nuevo.</div>';
+  }
+
+  document.getElementById('btn-buscar').disabled = false;
+  document.getElementById('used-notice').style.display = 'block';
+  document.getElementById('paywall').style.display = 'block';
+  setTimeout(() => document.getElementById('paywall').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+}
+
+async function buscarFallos(query) {
+  let q = query;
+  if (currentFuente === 'saij') q += ' site:saij.gob.ar -boletin';
+  else if (currentFuente === 'csjn') q += ' site:csjn.gov.ar -boletin';
+  else q += ' (site:saij.gob.ar OR site:csjn.gov.ar) -boletin';
+
+  const resp = await fetch('/api/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: q })
+  });
+  const data = await resp.json();
+  const todos = data.resultados || [];
+
+  if (todos.length === 0) {
+    document.getElementById('results-panel').innerHTML = '<div class="empty-state">No se encontraron resultados para esta búsqueda.</div>';
+    return;
+  }
+
+  const visibles = todos.slice(0, 3);
+  const ocultos = todos.slice(3, 10);
+
+  let html = `<div class="results-header"><span class="results-count">${todos.length} resultados encontrados</span></div>`;
+
+  visibles.forEach((r, i) => {
+    const fuente = r.link.includes('saij.gob.ar') ? 'SAIJ' : 'CSJN';
+    const url = r.link.length > 70 ? r.link.substring(0,70)+'...' : r.link;
+    html += `<div class="result-card" style="animation-delay:${i*0.07}s">
+      <div class="result-meta">
+        <span class="result-num">${i+1}</span>
+        <span class="result-fuente">${fuente}</span>
+      </div>
+      <a class="result-title" href="${r.link}" target="_blank">${r.title}</a>
+      <div class="result-url">${url}</div>
+    </div>`;
+  });
+
+  ocultos.forEach((r, i) => {
+    const fuente = r.link.includes('saij.gob.ar') ? 'SAIJ' : 'CSJN';
+    html += `<div class="blur-card">
+      <div class="blur-inner">
+        <div class="result-meta"><span class="result-num">${visibles.length+i+1}</span><span class="result-fuente">${fuente}</span></div>
+        <div class="result-title">${r.title}</div>
+        <div class="result-url">${r.link}</div>
+      </div>
+      <div class="blur-overlay">
+        <span class="lock-pill">
+          <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Suscribite para ver
+        </span>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('results-panel').innerHTML = html;
+}
+
+async function consultarIA(query) {
+  const labels = { consulta: 'Respuesta legal', resumen: 'Resumen del fallo', articulos: 'Artículo encontrado' };
+
+  const resp = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, tab: currentTab })
+  });
+
+  const data = await resp.json();
+  const texto = data.texto || 'No se pudo obtener respuesta.';
+  document.getElementById('results-panel').innerHTML = `
+    <div class="response-box">
+      <div class="response-label">${labels[currentTab]}</div>
+      ${texto}
+    </div>`;
+}
+
+document.getElementById('query').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); buscar(); }
+});
+
+// Scroll suave para todos los links del nav
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', function(e) {
+    const id = this.getAttribute('href').slice(1);
+    const target = document.getElementById(id);
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
