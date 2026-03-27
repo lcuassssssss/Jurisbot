@@ -462,7 +462,6 @@ async function buscar() {
   document.getElementById('free-note').innerHTML = 'Búsqueda gratuita utilizada · <strong style="color:#c0392b">Suscribite para continuar</strong>';
   document.getElementById('btn-buscar').disabled = true;
   document.getElementById('results-panel').innerHTML = '<div class="loading"><span class="spinner"></span>Buscando...</div>';
-  document.getElementById('paywall').style.display = 'none';
 
   try {
     if (currentTab === 'fallos') await buscarFallos(query);
