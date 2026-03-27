@@ -339,7 +339,7 @@ nav {
 
   <!-- PRECIOS / PAYWALL -->
   <div id="precios"></div>
-  <div class="paywall-banner" id="paywall">
+  <div class="paywall-banner" id="paywall" style="display:block;">
     <h3>Desbloqueá JurisBot completo</h3>
     <p>Accedé a 20 resultados por búsqueda, consultas legales con IA, resumen de fallos y artículos del CCyC y CN sin límites.</p>
     <div class="plan-row">
@@ -378,28 +378,53 @@ nav {
   </div>
 </section>
 
-<script src="https://js.stripe.com/v3/"></script>
 <script>
 
-// ─── STRIPE ─────────────────────────────────────────────────────────────────
-// Reemplazá estos IDs con los de tu dashboard de Stripe
-const STRIPE_PUBLIC_KEY = 'pk_live_REEMPLAZAR_CON_TU_CLAVE_PUBLICA';
-const STRIPE_PRICE_MENSUAL = 'price_REEMPLAZAR_ID_MENSUAL';
-const STRIPE_PRICE_ANUAL   = 'price_REEMPLAZAR_ID_ANUAL';
+// ─── MERCADO PAGO ────────────────────────────────────────────────────────────
+const MP_PUBLIC_KEY = 'TEST-99bc00b3-ad84-4486-8253-9f54d9afbe8b';
 
 async function suscribir(plan) {
-  const stripe = Stripe(STRIPE_PUBLIC_KEY);
-  const priceId = plan === 'anual' ? STRIPE_PRICE_ANUAL : STRIPE_PRICE_MENSUAL;
-  const { error } = await stripe.redirectToCheckout({
-    lineItems: [{ price: priceId, quantity: 1 }],
-    mode: 'subscription',
-    successUrl: window.location.origin + '?suscripcion=ok',
-    cancelUrl: window.location.origin + '?suscripcion=cancelada',
-  });
-  if (error) alert('Error al iniciar el pago: ' + error.message);
+  const btn = document.querySelector(`[onclick="suscribir('${plan}')"]`);
+  if (btn) { btn.disabled = true; btn.textContent = 'Procesando...'; }
+  try {
+    const resp = await fetch('/api/mp-subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan })
+    });
+    const data = await resp.json();
+    if (data.init_point) {
+      window.location.href = data.init_point;
+    } else {
+      alert('Error al iniciar el pago. Intentá de nuevo.');
+      if (btn) { btn.disabled = false; btn.textContent = plan === 'anual' ? 'Elegir anual →' : 'Elegir mensual →'; }
+    }
+  } catch(e) {
+    alert('Error de conexión. Intentá de nuevo.');
+    if (btn) { btn.disabled = false; btn.textContent = plan === 'anual' ? 'Elegir anual →' : 'Elegir mensual →'; }
+  }
 }
 // ────────────────────────────────────────────────────────────────────────────
 let usedFree = false;
+const ADMIN_PASSWORD = 'CamiLucasAnaReggi';
+
+// Acceso admin
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('admin') === ADMIN_PASSWORD) {
+    usedFree = false;
+    localStorage.setItem('jurisbot_admin', ADMIN_PASSWORD);
+  }
+  if (localStorage.getItem('jurisbot_admin') === ADMIN_PASSWORD) {
+    usedFree = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      const note = document.getElementById('free-note');
+      if (note) note.innerHTML = '✓ Modo admin activado · <strong style="color:var(--verde)">Búsquedas ilimitadas</strong>';
+      const btn = document.getElementById('btn-buscar');
+      if (btn) btn.disabled = false;
+    });
+  }
+})();
 let currentTab = 'fallos';
 let currentFuente = 'ambas';
 
@@ -416,7 +441,6 @@ function setTab(tab, el) {
   else if (tab === 'resumen') { q.placeholder = 'Pegá el texto del fallo o describí el caso...'; btn.textContent = 'Resumir →'; }
   else if (tab === 'articulos') { q.placeholder = 'Ejemplo: artículo 1109 del CCyC, artículo 14 de la CN...'; btn.textContent = 'Buscar →'; }
   document.getElementById('results-panel').innerHTML = '<div class="empty-state">Tu resultado aparecerá aquí</div>';
-  document.getElementById('paywall').style.display = 'none';
   document.getElementById('used-notice').style.display = 'none';
 }
 
@@ -431,8 +455,7 @@ async function buscar() {
   if (!query) { document.getElementById('query').focus(); return; }
   if (usedFree) {
     document.getElementById('used-notice').style.display = 'block';
-    document.getElementById('paywall').style.display = 'block';
-    document.getElementById('paywall').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('precios').scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
   usedFree = true;
@@ -450,8 +473,7 @@ async function buscar() {
 
   document.getElementById('btn-buscar').disabled = false;
   document.getElementById('used-notice').style.display = 'block';
-  document.getElementById('paywall').style.display = 'block';
-  setTimeout(() => document.getElementById('paywall').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+  setTimeout(() => document.getElementById('precios').scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
 }
 
 async function buscarFallos(query) {
