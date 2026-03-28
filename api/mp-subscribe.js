@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   // Precios en centavos (MP usa la moneda en su valor entero para ARS)
   const precios = {
     mensual: { monto: 45000, frecuencia: 1, tipo: 'months', label: 'Plan Mensual JurisBot' },
-    anual:   { monto: 499000, frecuencia: 12, tipo: 'months', label: 'Plan Anual JurisBot' },
+    anual:   { monto: 460000, frecuencia: 12, tipo: 'months', label: 'Plan Anual JurisBot' },
   };
 
   const p = precios[plan];
