@@ -1,45 +1,40 @@
-// api/auth-login.js
-import crypto from 'crypto';
-
+// api/auth-login.js — Login con Supabase Auth
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password + 'jurisbot_salt').digest('hex');
-}
-
-function generarToken(email) {
-  return crypto.createHash('sha256').update(email + Date.now() + 'jurisbot_token').digest('hex');
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Faltan datos' });
-
-  const hash = hashPassword(password);
+  if (!email || !password) return res.status(400).json({ error: 'Completá todos los campos' });
 
   try {
-    const resp = await fetch(`${SUPABASE_URL}/rest/v1/suscriptores?email=eq.${encodeURIComponent(email)}&select=*`, {
+    const resp = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      return res.status(400).json({ error: 'Email o contraseña incorrectos' });
+    }
+
+    const token = data.access_token;
+    const nombre = data.user?.user_metadata?.nombre || email.split('@')[0];
+
+    // Obtener estado de suscripción
+    const susResp = await fetch(`${SUPABASE_URL}/rest/v1/suscriptores?email=eq.${encodeURIComponent(email)}&select=activo,plan`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
     });
+    const sus = await susResp.json();
+    const activo = sus?.[0]?.activo || false;
+    const plan = sus?.[0]?.plan || null;
 
-    const usuarios = await resp.json();
-    if (!usuarios || usuarios.length === 0) return res.status(400).json({ error: 'Email o contraseña incorrectos' });
-
-    const usuario = usuarios[0];
-    if (usuario.password_hash !== hash) return res.status(400).json({ error: 'Email o contraseña incorrectos' });
-
-    const token = generarToken(email);
-
-    // Actualizar token
-    await fetch(`${SUPABASE_URL}/rest/v1/suscriptores?email=eq.${encodeURIComponent(email)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-      body: JSON.stringify({ mp_preapproval_id: token })
-    });
-
-    return res.status(200).json({ ok: true, token, activo: usuario.activo, plan: usuario.plan });
+    return res.status(200).json({ ok: true, token, nombre, activo, plan });
   } catch(e) {
     return res.status(500).json({ error: 'Error interno', detalle: e.message });
   }
