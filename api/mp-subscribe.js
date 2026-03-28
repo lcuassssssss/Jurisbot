@@ -4,9 +4,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const { plan } = req.body;
+  const { plan, email } = req.body;
   if (!plan || !['mensual', 'anual'].includes(plan)) {
     return res.status(400).json({ error: 'Plan inválido' });
+  }
+  if (!email) {
+    return res.status(400).json({ error: 'Email requerido' });
   }
 
   const accessToken = process.env.MP_ACCESS_TOKEN;
