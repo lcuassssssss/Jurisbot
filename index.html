@@ -225,23 +225,24 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
 /* COMPARATIVA */
 .comparativa { margin-top: 4rem; }
-.comp-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: center; background: var(--blanco); border-radius: 20px; border: 1px solid var(--borde); overflow: hidden; }
+.comp-label { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; text-align: center; color: var(--negro); margin-bottom: 2rem; letter-spacing: -0.5px; }
+.comp-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; border-radius: 20px; border: 1px solid var(--borde); overflow: hidden; }
 .comp-col { padding: 2rem; }
-.comp-col-otras { background: var(--blanco); }
+.comp-col-otras { background: #e2ded7; }
 .comp-col-jurisbot { background: var(--verde-dark); }
 .comp-col-titulo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 1.25rem; color: var(--negro); }
 .comp-col-jurisbot .comp-col-titulo { color: white; }
-.comp-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; font-size: 13px; color: var(--gris-medio); border-bottom: 1px solid var(--gris); }
+.comp-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; font-size: 13px; color: #6b6860; border-bottom: 1px solid #dedad3; }
 .comp-item:last-child { border-bottom: none; }
 .comp-col-jurisbot .comp-item { color: rgba(255,255,255,0.85); border-bottom-color: rgba(255,255,255,0.1); }
 .comp-icon-neg { color: #c0392b; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 .comp-icon-pos { color: #2da882; font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 .comp-col-jurisbot .comp-icon-pos { color: #7fe8c8; }
-.comp-vs { padding: 1rem; font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gris-medio); text-align: center; background: var(--gris); align-self: stretch; display: flex; align-items: center; }
+.comp-vs { padding: 1.5rem 1rem; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--gris-medio); text-align: center; background: var(--blanco); display: flex; align-items: center; border-left: 1px solid var(--borde); border-right: 1px solid var(--borde); }
 
 @media (max-width: 768px) {
   .comp-grid { grid-template-columns: 1fr; }
-  .comp-vs { padding: 0.5rem; writing-mode: horizontal-tb; }
+  .comp-vs { padding: 0.75rem; border: none; border-top: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
 }
 
 /* FAQ VERDE */
@@ -487,7 +488,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
     <!-- Comparativa -->
     <div class="comparativa">
-      <p class="carac-label" style="margin-bottom:2rem;text-align:center;">JurisBot vs otras IAs</p>
+      <p class="comp-label">JurisBot vs otras IAs</p>
       <div class="comp-grid">
         <div class="comp-col comp-col-otras">
           <div class="comp-col-titulo">Otras IAs generales</div>
