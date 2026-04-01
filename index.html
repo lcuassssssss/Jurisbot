@@ -255,14 +255,40 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
 /* REEMPLAZA estilos FAQ anteriores */
 
-@media (max-width: 640px) {
-  nav { padding: 1rem 1.5rem; }
-  .nav-links { display: none; }
-  .hero { padding: 6rem 1.25rem 3rem; }
-  .plan-row { grid-template-columns: 1fr; }
-  .stats { flex-direction: column; gap: 1.5rem; }
-  .search-input-row { flex-direction: column; }
-  .btn-buscar { width: 100%; }
+/* MODALES LEGALES */
+.modal-legal-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+.modal-legal { background: var(--blanco); border-radius: 16px; width: 100%; max-width: 580px; max-height: 80vh; margin: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.2); display: flex; flex-direction: column; position: relative; animation: slideUp 0.25s ease; }
+.modal-legal-header { padding: 1.5rem 2rem 1rem; border-bottom: 1px solid var(--borde); flex-shrink: 0; }
+.modal-legal-header h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--negro); }
+.modal-legal-header p { font-size: 12px; color: var(--gris-medio); margin-top: 4px; }
+.modal-legal-body { padding: 1.5rem 2rem; overflow-y: auto; flex: 1; }
+.modal-legal-body h4 { font-size: 14px; font-weight: 500; color: var(--negro); margin: 1.25rem 0 6px; }
+.modal-legal-body h4:first-child { margin-top: 0; }
+.modal-legal-body p { font-size: 13px; color: var(--gris-medio); line-height: 1.7; margin-bottom: 8px; }
+.modal-legal-footer { padding: 1rem 2rem; border-top: 1px solid var(--borde); flex-shrink: 0; }
+.modal-legal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gris-medio); padding: 2px 8px; border-radius: 6px; }
+.modal-legal-close:hover { background: var(--gris); }
+.footer { background: var(--negro); color: rgba(255,255,255,0.6); padding: 4rem 2rem 2rem; }
+.footer-inner { max-width: 1100px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+.footer-brand-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: white; margin-bottom: 0.75rem; }
+.footer-brand-logo span { color: var(--verde-mid); }
+.footer-brand-desc { font-size: 13px; line-height: 1.7; max-width: 280px; }
+.footer-social { display: flex; gap: 12px; margin-top: 1.25rem; }
+.footer-social a { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; transition: background 0.2s; text-decoration: none; }
+.footer-social a:hover { background: var(--verde); }
+.footer-social svg { width: 16px; height: 16px; fill: white; }
+.footer-col-titulo { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: white; font-weight: 500; margin-bottom: 1rem; }
+.footer-col a { display: block; font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 0; transition: color 0.15s; }
+.footer-col a:hover { color: white; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+.footer-bottom-links { display: flex; gap: 1.5rem; }
+.footer-bottom-links a { color: rgba(255,255,255,0.4); text-decoration: none; transition: color 0.15s; }
+.footer-bottom-links a:hover { color: white; }
+
+@media (max-width: 768px) {
+  .footer-top { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
 }
 </style>
 </head>
@@ -340,7 +366,13 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
         </div>
       </div>
       <button class="btn-modal-submit" onclick="registro()">Crear cuenta →</button>
-      <button class="btn-omitir" onclick="registro(true)">Omitir por ahora</button>
+      <button class="btn-omitir" onclick="registro(true)">Omitir datos del despacho</button>
+      <div style="margin-top:12px;display:flex;align-items:flex-start;gap:8px;">
+        <input type="checkbox" id="acepta-tyc" style="margin-top:3px;accent-color:var(--verde);flex-shrink:0;cursor:pointer;">
+        <label for="acepta-tyc" style="font-size:12px;color:var(--gris-medio);line-height:1.5;cursor:pointer;">
+          Acepto los <button onclick="abrirTyC(event)" style="background:none;border:none;color:var(--verde);font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-decoration:underline;">Términos y Condiciones</button> y la <button onclick="abrirPrivacidad(event)" style="background:none;border:none;color:var(--verde);font-size:12px;cursor:pointer;padding:0;font-family:'DM Sans',sans-serif;text-decoration:underline;">Política de Privacidad</button>
+        </label>
+      </div>
     </div>
     <div id="modal-reset" style="display:none;">
       <p style="font-size:13px;color:var(--gris-medio);margin-bottom:1rem;">Te enviamos un link para restablecer tu contraseña.</p>
@@ -642,7 +674,131 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
   </div>
 </div>
 
-<script>
+<!-- MODAL T&C -->
+<div class="modal-legal-overlay" id="modal-tyc" style="display:none;">
+  <div class="modal-legal">
+    <button class="modal-legal-close" onclick="document.getElementById('modal-tyc').style.display='none'">×</button>
+    <div class="modal-legal-header">
+      <h3>Términos y Condiciones</h3>
+      <p>Última actualización: abril 2025 · JurisBot.ia</p>
+    </div>
+    <div class="modal-legal-body">
+      <h4>1. Aceptación de los términos</h4>
+      <p>Al registrarte y utilizar JurisBot.ia, aceptás estos Términos y Condiciones en su totalidad. Si no estás de acuerdo con alguno de estos términos, no debés utilizar el servicio.</p>
+
+      <h4>2. Descripción del servicio</h4>
+      <p>JurisBot.ia es una plataforma de búsqueda de jurisprudencia argentina que permite acceder a fallos del SAIJ y la CSJN, consultar el Código Civil y Comercial (CCyC) y la Constitución Nacional, y realizar consultas asistidas por inteligencia artificial.</p>
+      <p>JurisBot.ia es una herramienta de búsqueda e investigación. Las respuestas generadas por inteligencia artificial son de carácter orientativo y no constituyen asesoramiento legal profesional. El usuario es responsable de verificar y evaluar toda la información antes de su aplicación.</p>
+
+      <h4>3. Uso del servicio</h4>
+      <p>El servicio está destinado exclusivamente a profesionales del derecho y personas con fines de investigación jurídica. El usuario se compromete a utilizar JurisBot.ia de forma lícita y de acuerdo con la normativa vigente en Argentina.</p>
+      <p>Queda prohibido el uso del servicio para fines fraudulentos, la reproducción masiva de contenidos sin autorización, o cualquier acción que interfiera con el normal funcionamiento de la plataforma.</p>
+
+      <h4>4. Suscripción y pagos</h4>
+      <p>JurisBot.ia ofrece planes de suscripción mensual y anual. Los pagos se procesan a través de Mercado Pago. El usuario puede cancelar su suscripción en cualquier momento, manteniendo el acceso hasta el fin del período abonado. No se realizan reembolsos por períodos parciales.</p>
+
+      <h4>5. Limitación de responsabilidad</h4>
+      <p>JurisBot.ia no garantiza la exactitud, completitud o actualización de la información proporcionada. La plataforma no asume responsabilidad por decisiones tomadas en base a la información obtenida a través del servicio. El usuario reconoce que la revisión profesional de un abogado es siempre necesaria.</p>
+
+      <h4>6. Propiedad intelectual</h4>
+      <p>Todos los derechos sobre la plataforma, su diseño y funcionalidades pertenecen a JurisBot.ia. Los contenidos de fuentes oficiales (SAIJ, CSJN) son de acceso público conforme la normativa argentina.</p>
+
+      <h4>7. Modificaciones</h4>
+      <p>JurisBot.ia se reserva el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados por email y/o publicados en la plataforma. El uso continuado del servicio implica la aceptación de los nuevos términos.</p>
+
+      <h4>8. Contacto</h4>
+      <p>Para consultas sobre estos términos, podés escribirnos a <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="18726d6a716b7a776c367b77766c797b6c77587f75797174367b7775">[email&#160;protected]</a></strong></p>
+    </div>
+    <div class="modal-legal-footer">
+      <button class="btn-modal-submit" onclick="document.getElementById('modal-tyc').style.display='none'" style="margin-top:0;">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRIVACIDAD -->
+<div class="modal-legal-overlay" id="modal-privacidad" style="display:none;">
+  <div class="modal-legal">
+    <button class="modal-legal-close" onclick="document.getElementById('modal-privacidad').style.display='none'">×</button>
+    <div class="modal-legal-header">
+      <h3>Política de Privacidad</h3>
+      <p>Última actualización: abril 2025 · JurisBot.ia</p>
+    </div>
+    <div class="modal-legal-body">
+      <h4>1. Información que recopilamos</h4>
+      <p>Al registrarte, recopilamos tu nombre completo, email, contraseña (almacenada de forma segura) y datos opcionales de tu despacho (nombre, conformación y fuero). También registramos el uso del servicio para mejorar la experiencia.</p>
+
+      <h4>2. Uso de la información</h4>
+      <p>Utilizamos tus datos para gestionar tu cuenta y suscripción, enviarte comunicaciones relacionadas con el servicio, mejorar la plataforma y cumplir con obligaciones legales. No vendemos ni compartimos tus datos personales con terceros con fines comerciales.</p>
+
+      <h4>3. Almacenamiento y seguridad</h4>
+      <p>Tus datos se almacenan en servidores seguros a través de Supabase. Implementamos medidas de seguridad estándar de la industria para proteger tu información. Las contraseñas se almacenan de forma encriptada y nunca en texto plano.</p>
+
+      <h4>4. Pagos</h4>
+      <p>Los pagos son procesados por Mercado Pago. JurisBot.ia no almacena datos de tarjetas de crédito ni información financiera. Mercado Pago tiene su propia política de privacidad disponible en su sitio web.</p>
+
+      <h4>5. Cookies</h4>
+      <p>JurisBot.ia utiliza el almacenamiento local del navegador (localStorage) para mantener tu sesión activa. No utilizamos cookies de seguimiento ni publicidad de terceros.</p>
+
+      <h4>6. Tus derechos</h4>
+      <p>Tenés derecho a acceder, rectificar o eliminar tus datos personales en cualquier momento. Para ejercer estos derechos, escribinos a <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="cba1beb9a2b8a9a4bfe5a8a4a5bfaaa8bfa48baca6aaa2a7e5a8a4a6">[email&#160;protected]</a></strong></p>
+
+      <h4>7. Cambios en la política</h4>
+      <p>Podemos actualizar esta política periódicamente. Te notificaremos por email ante cambios significativos.</p>
+
+      <h4>8. Contacto</h4>
+      <p>Para consultas sobre privacidad, escribinos a <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="066c73746f7564697228656968726765726946616b676f6a2865696b">[email&#160;protected]</a></strong></p>
+    </div>
+    <div class="modal-legal-footer">
+      <button class="btn-modal-submit" onclick="document.getElementById('modal-privacidad').style.display='none'" style="margin-top:0;">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-logo">Juris<span>Bot</span>.ia</div>
+        <p class="footer-brand-desc">La herramienta jurídica que todo abogado argentino necesita. Jurisprudencia real, IA sin alucinaciones.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/jurisbot.arg/" target="_blank" title="Instagram">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="mailto:jurisbot.contacto@gmail.com" title="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+        </div>
+        <p style="font-size:12px;margin-top:10px;color:rgba(255,255,255,0.4);">jurisbot.contacto@gmail.com</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-titulo">Producto</div>
+        <a href="#buscar">Buscar fallos</a>
+        <a href="#buscar">Consulta legal</a>
+        <a href="#buscar">Resumir fallos</a>
+        <a href="#buscar">CCyC y Constitución</a>
+        <a href="#precios">Precios</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-titulo">Información</div>
+        <a href="#caracteristicas">Características</a>
+        <a href="#faq">Preguntas frecuentes</a>
+        <a href="#precios">Planes</a>
+        <a href="https://www.instagram.com/jurisbot.arg/" target="_blank">Instagram</a>
+        <a href="mailto:jurisbot.contacto@gmail.com">Contacto</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 JurisBot.ia — Todos los derechos reservados</span>
+      <div class="footer-bottom-links">
+        <a href="#" onclick="abrirTyC(event)">Términos y condiciones</a>
+        <a href="#" onclick="abrirPrivacidad(event)">Política de privacidad</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const ADMIN_PASSWORD = 'CamiLucasAnaReggi';
 let usuarioActual = null;
 let usuarioActivo = false;
@@ -766,6 +922,9 @@ function toggleFuero(el, val) {
   el.querySelector('input').checked = el.classList.contains('selected');
 }
 
+function abrirTyC(e) { e.stopPropagation(); document.getElementById('modal-tyc').style.display = 'flex'; }
+function abrirPrivacidad(e) { e.stopPropagation(); document.getElementById('modal-privacidad').style.display = 'flex'; }
+
 async function registro(omitir = false) {
   const nombre = document.getElementById('reg-nombre').value.trim();
   const email = document.getElementById('reg-email').value.trim();
@@ -773,6 +932,10 @@ async function registro(omitir = false) {
   const despacho = omitir ? '' : (document.getElementById('reg-despacho')?.value?.trim() || '');
   const conformacion = omitir ? '' : (document.getElementById('reg-conformacion')?.value || '');
   const fueros = omitir ? [] : Array.from(document.querySelectorAll('.fuero-item.selected')).map(el => el.querySelector('input').value);
+
+  // Validar T&C siempre (tanto si omite despacho como si no)
+  const aceptaTyC = document.getElementById('acepta-tyc')?.checked;
+  if (!aceptaTyC) return mostrarError('Debés aceptar los Términos y Condiciones para continuar');
 
   const btn = omitir
     ? document.querySelector('#modal-registro-paso2 .btn-omitir')
@@ -957,12 +1120,4 @@ async function buscarFallos(query) {
 
 async function consultarIA(query) {
   const labels = { consulta: 'Respuesta legal', resumen: 'Resumen del fallo', articulos: 'Artículo encontrado' };
-  const resp = await fetch('/api/claude', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({query, tab: currentTab}) });
-  const data = await resp.json();
-  document.getElementById('results-panel').innerHTML = `<div class="response-box"><div class="response-label">${labels[currentTab]}</div>${data.texto || 'No se pudo obtener respuesta.'}</div>`;
-}
-
-document.getElementById('query').addEventListener('keydown', function(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();buscar();} });
-</script>
-</body>
-</html>
+  const resp = a
