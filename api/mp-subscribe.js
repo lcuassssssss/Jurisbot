@@ -12,16 +12,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Email requerido' });
   }
 
-  const accessToken = process.env.MP_ACCESS_TOKEN;
+  // Usar producción si está disponible, sino prueba
+  const accessToken = process.env.MP_ACCESS_TOKEN_PROD || process.env.MP_ACCESS_TOKEN;
   if (!accessToken) {
     return res.status(500).json({ error: 'MP_ACCESS_TOKEN no configurado' });
   }
 
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000';
+  const baseUrl = 'https://jurisbot-ll83.vercel.app';
 
-  // Precios en centavos (MP usa la moneda en su valor entero para ARS)
   const precios = {
     mensual: { monto: 45000, frecuencia: 1, tipo: 'months', label: 'Plan Mensual JurisBot' },
     anual:   { monto: 460000, frecuencia: 12, tipo: 'months', label: 'Plan Anual JurisBot' },
