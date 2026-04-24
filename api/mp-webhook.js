@@ -1,5 +1,6 @@
 // api/mp-webhook.js — Webhook de Mercado Pago
 // Activa automáticamente al usuario cuando el pago es aprobado
+// Identifica el plan por external_reference (formato: "tier|plan|email")
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -10,7 +11,7 @@ export default async function handler(req, res) {
 
   const { type, data } = req.body;
 
-  // Solo nos interesan los eventos de suscripción
+  // Solo nos interesan los eventos de suscripción o pago
   if (type !== 'subscription_preapproval' && type !== 'payment') {
     return res.status(200).json({ ok: true, ignorado: true });
   }
@@ -33,24 +34,51 @@ export default async function handler(req, res) {
     const email = mpData.payer?.email || mpData.payer_email;
     if (!email) return res.status(200).json({ ok: true, sin_email: true });
 
-    // Verificar si el pago/suscripción está activo/aprobado
+    // Verificar estado
     const estado = mpData.status;
     const activo = estado === 'authorized' || estado === 'approved' || estado === 'active';
 
     if (!activo) return res.status(200).json({ ok: true, estado });
 
-    // Determinar el plan según el monto
-    const monto = mpData.auto_recurring?.transaction_amount || mpData.transaction_amount || 0;
-    const plan = monto >= 400000 ? 'anual' : 'mensual';
+    // ─────────────────────────────────────────────────────────────
+    // IDENTIFICACIÓN DEL PLAN
+    // Método 1 (nuevo): external_reference con formato "tier|plan|email"
+    // Método 2 (fallback): por monto, para compatibilidad con pagos viejos
+    // ─────────────────────────────────────────────────────────────
+    let tier = null;
+    let planFrecuencia = null;
 
-    // Calcular fecha de vencimiento
+    const externalRef = mpData.external_reference || '';
+    if (externalRef.includes('|')) {
+      const parts = externalRef.split('|');
+      if (parts.length >= 2 && ['basico', 'pro'].includes(parts[0]) && ['mensual', 'anual'].includes(parts[1])) {
+        tier = parts[0];
+        planFrecuencia = parts[1];
+      }
+    }
+
+    // Fallback por monto si no viene external_reference válido
+    if (!tier || !planFrecuencia) {
+      const monto = mpData.auto_recurring?.transaction_amount || mpData.transaction_amount || 0;
+      // Identificación por rango de monto
+      if (monto >= 250000) { tier = 'pro'; planFrecuencia = 'anual'; }
+      else if (monto >= 100000) { tier = 'basico'; planFrecuencia = 'anual'; }
+      else if (monto >= 20000) { tier = 'pro'; planFrecuencia = 'mensual'; }
+      else { tier = 'basico'; planFrecuencia = 'mensual'; }
+    }
+
+    // Calcular vencimiento
     const ahora = new Date();
     const vencimiento = new Date(ahora);
-    if (plan === 'anual') {
+    if (planFrecuencia === 'anual') {
       vencimiento.setFullYear(vencimiento.getFullYear() + 1);
     } else {
       vencimiento.setMonth(vencimiento.getMonth() + 1);
     }
+
+    // Valor que guardamos en "plan": combinación tier + frecuencia
+    // Formato: "basico-mensual", "pro-anual", etc.
+    const planCompleto = `${tier}-${planFrecuencia}`;
 
     // Activar en Supabase
     const susResp = await fetch(`${SUPABASE_URL}/rest/v1/suscriptores?email=eq.${encodeURIComponent(email)}`, {
@@ -62,7 +90,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         activo: true,
-        plan,
+        plan: planCompleto,
         fecha_inicio: ahora.toISOString(),
         fecha_vencimiento: vencimiento.toISOString(),
         mp_preapproval_id: resourceId,
@@ -74,8 +102,8 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Error actualizando Supabase' });
     }
 
-    console.log(`✅ Usuario activado: ${email} — Plan: ${plan}`);
-    return res.status(200).json({ ok: true, email, plan });
+    console.log(`✅ Usuario activado: ${email} — Plan: ${planCompleto}`);
+    return res.status(200).json({ ok: true, email, plan: planCompleto });
 
   } catch (err) {
     console.error('Error webhook:', err);
