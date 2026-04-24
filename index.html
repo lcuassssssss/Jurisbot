@@ -116,6 +116,17 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .btn-sec { background: rgba(10,22,40,0.3) !important; color: white !important; border: 1px solid rgba(255,255,255,0.4) !important; }
 .btn-sec:hover { background: rgba(10,22,40,0.5) !important; }
 
+/* TOGGLE MENSUAL/ANUAL */
+.billing-toggle { display: inline-flex; background: rgba(10,22,40,0.25); border-radius: 100px; padding: 4px; margin-bottom: 1.25rem; gap: 2px; }
+.bill-btn { border: none; background: transparent; color: rgba(255,255,255,0.7); padding: 7px 18px; border-radius: 100px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px; }
+.bill-btn.active { background: white; color: #0284c7; }
+.save-badge { font-size: 10px; background: #0284c7; color: white; padding: 2px 7px; border-radius: 100px; font-weight: 600; }
+.bill-btn.active .save-badge { background: #00b4ff; color: #0a1628; }
+
+/* FEATURE OFF (tachada en Básico) */
+.plan-features li.feature-off { color: rgba(255,255,255,0.45) !important; text-decoration: line-through; }
+.plan-features li.feature-off::before { content: "✗ " !important; opacity: 0.5 !important; }
+
 /* RESPONSE */
 .response-box { background: var(--gris); border: 1px solid var(--borde); border-radius: 12px; padding: 1.5rem; font-size: 14px; line-height: 1.8; color: #e2e8f0; white-space: pre-wrap; animation: fadeUp 0.3s ease; }
 .response-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--verde-mid); margin-bottom: 12px; font-weight: 500; }
@@ -505,32 +516,51 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 
   <div id="precios"></div>
   <div class="paywall-banner" id="paywall">
-    <h3>Desbloqueá JurisBot completo</h3>
-    <p>Accedé a 20 resultados por búsqueda, consultas legales con IA, resumen de fallos y artículos del CCyC y CN sin límites.</p>
+    <h3>Elegí tu plan de JurisBot</h3>
+    <p>Empezá con el Básico o accedé a todas las funciones con IA en el Pro. Cancelás cuando quieras.</p>
+
+    <!-- Toggle Mensual / Anual -->
+    <div class="billing-toggle">
+      <button class="bill-btn active" id="bill-mensual" onclick="setBillCycle('mensual')">Mensual</button>
+      <button class="bill-btn" id="bill-anual" onclick="setBillCycle('anual')">Anual <span class="save-badge">2 meses gratis</span></button>
+    </div>
+
     <div class="plan-row">
+      <!-- PLAN BÁSICO -->
       <div class="plan">
-        <div class="plan-name">Plan mensual</div>
-        <div class="plan-price">$26.000 <small>/ mes</small></div>
+        <div class="plan-name">Plan Básico</div>
+        <div class="plan-price">
+          <span id="precio-basico">$12.000</span>
+          <small id="ciclo-basico">/ mes</small>
+        </div>
         <ul class="plan-features">
-          <li>Búsquedas ilimitadas</li>
-          <li>20 resultados por búsqueda</li>
-          <li>Consultas con IA</li>
-          <li>Resumen de fallos</li>
-          <li>Artículos CCyC y CN</li>
+          <li>Búsqueda ilimitada de fallos (SAIJ + CSJN)</li>
+          <li>Calculadora de indemnizaciones</li>
+          <li>Consulta de artículos CCyC y CN</li>
+          <li class="feature-off">Consulta legal con IA</li>
+          <li class="feature-off">Resumen de fallos con IA</li>
+          <li class="feature-off">Análisis de documentos</li>
         </ul>
-        <button class="btn-suscribir btn-sec" onclick="iniciarSuscripcion('mensual')">Elegir mensual →</button>
+        <button class="btn-suscribir btn-sec" onclick="iniciarSuscripcion('basico')">Elegir Básico →</button>
       </div>
+
+      <!-- PLAN PRO -->
       <div class="plan highlight">
-        <div class="plan-tag">Más popular</div>
-        <div class="plan-name">Plan anual</div>
-        <div class="plan-price">$262.000 <small>/ año</small></div>
+        <div class="plan-tag">Más completo</div>
+        <div class="plan-name">Plan Pro</div>
+        <div class="plan-price">
+          <span id="precio-pro">$26.000</span>
+          <small id="ciclo-pro">/ mes</small>
+        </div>
         <ul class="plan-features">
-          <li>Todo lo del plan mensual</li>
-          <li>Ahorrás $50.000 por año</li>
+          <li>Todo lo del plan Básico</li>
+          <li>Consulta legal con IA ilimitada</li>
+          <li>Resumen de fallos con IA</li>
+          <li>Análisis de documentos (PDF, imágenes)</li>
           <li>Soporte prioritario</li>
           <li>Acceso anticipado a nuevas funciones</li>
         </ul>
-        <button class="btn-suscribir" onclick="iniciarSuscripcion('anual')">Elegir anual →</button>
+        <button class="btn-suscribir" onclick="iniciarSuscripcion('pro')">Elegir Pro →</button>
       </div>
     </div>
   </div>
@@ -1031,11 +1061,41 @@ function logout() {
   document.getElementById('free-note').innerHTML = '<strong>1 búsqueda gratuita</strong> · Sin registro';
 }
 
-async function iniciarSuscripcion(plan) {
+// ─── CICLO DE FACTURACIÓN (toggle Mensual/Anual) ───
+let cicloFacturacion = 'mensual'; // 'mensual' | 'anual'
+
+const PRECIOS = {
+  basico: { mensual: 12000,  anual: 120000 },
+  pro:    { mensual: 26000,  anual: 262000 },
+};
+
+function setBillCycle(ciclo) {
+  cicloFacturacion = ciclo;
+  document.getElementById('bill-mensual').classList.toggle('active', ciclo === 'mensual');
+  document.getElementById('bill-anual').classList.toggle('active', ciclo === 'anual');
+  // Actualizar precios mostrados
+  const formato = n => '$' + n.toLocaleString('es-AR');
+  document.getElementById('precio-basico').textContent = formato(PRECIOS.basico[ciclo]);
+  document.getElementById('precio-pro').textContent = formato(PRECIOS.pro[ciclo]);
+  const sufijo = ciclo === 'mensual' ? '/ mes' : '/ año';
+  document.getElementById('ciclo-basico').textContent = sufijo;
+  document.getElementById('ciclo-pro').textContent = sufijo;
+}
+
+async function iniciarSuscripcion(tier) {
+  if (!['basico', 'pro'].includes(tier)) return;
   if (!usuarioActual) { abrirModal(); mostrarError('Primero iniciá sesión o creá una cuenta'); return; }
   document.querySelectorAll('.btn-suscribir').forEach(b => b.disabled = true);
   try {
-    const resp = await fetch('/api/mp-subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({plan, email: usuarioActual}) });
+    const resp = await fetch('/api/mp-subscribe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        tier,                  // 'basico' o 'pro'
+        plan: cicloFacturacion, // 'mensual' o 'anual'
+        email: usuarioActual
+      })
+    });
     const data = await resp.json();
     if (data.init_point) { window.location.href = data.init_point; }
     else { alert('Error al iniciar el pago. Intentá de nuevo.'); document.querySelectorAll('.btn-suscribir').forEach(b => b.disabled = false); }
@@ -1111,14 +1171,65 @@ async function cancelarSuscripcion() {
 // ─────────────────────────────────────────────────────────────────────────────
 function mostrarToast(msg) {
   const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--verde);color:white;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.15);';
+  el.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:var(--verde);color:#0a1628;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:300;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(0,180,255,0.3);';
   el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 4000);
+}
+
+// ─── SISTEMA DE PERMISOS POR FEATURE ───
+// Features que requieren plan Pro (Básico no las puede usar)
+const FEATURES_PRO = ['consulta', 'resumen', 'documento'];
+
+function getUserTier() {
+  // Devuelve 'pro', 'basico' o null (no suscripto)
+  if (!usuarioActivo) return null;
+  if (!usuarioPlan) return null;
+  // usuarioPlan puede ser: 'basico-mensual', 'basico-anual', 'pro-mensual', 'pro-anual'
+  // o los legacy 'mensual'/'anual' que vienen de pagos viejos → asumimos pro
+  if (usuarioPlan.startsWith('basico')) return 'basico';
+  if (usuarioPlan.startsWith('pro')) return 'pro';
+  if (usuarioPlan === 'mensual' || usuarioPlan === 'anual') return 'pro'; // legacy
+  return 'pro'; // default seguro
+}
+
+function puedeUsarFeature(tab) {
+  // 'fallos', 'articulos', 'calculadora' son del Básico (todos los planes)
+  // 'consulta', 'resumen', 'documento' son del Pro
+  if (!FEATURES_PRO.includes(tab)) return true;
+  const tier = getUserTier();
+  return tier === 'pro';
+}
+
+function mostrarUpgradeABasico(tab) {
+  const nombres = {
+    consulta: 'Consulta legal con IA',
+    resumen: 'Resumen de fallos con IA',
+    documento: 'Análisis de documentos',
+  };
+  document.getElementById('results-panel').innerHTML = `
+    <div class="empty-state" style="padding:2rem 1rem;text-align:center;">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:#fff;margin-bottom:8px;">${nombres[tab] || 'Esta función'}</div>
+      <p style="color:var(--gris-medio);font-size:14px;margin-bottom:1.25rem;max-width:420px;margin-left:auto;margin-right:auto;">Esta función está incluida en el <strong style="color:var(--verde)">Plan Pro</strong>. Con tu plan Básico podés usar búsqueda de fallos, calculadora y consulta de artículos.</p>
+      <button onclick="document.getElementById('precios').scrollIntoView({behavior:'smooth'})" style="background:var(--verde);color:#0a1628;border:none;padding:10px 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;box-shadow:0 0 20px rgba(0,180,255,0.3);">Ver Plan Pro →</button>
+    </div>
+  `;
 }
 
 function setTab(tab, el) {
   currentTab = tab;
   document.querySelectorAll('.stab').forEach(b => b.classList.remove('active')); el.classList.add('active');
   const srcRow = document.getElementById('source-row'), docRow = document.getElementById('doc-upload-row'), q = document.getElementById('query'), btn = document.getElementById('btn-buscar'), inputRow = document.querySelector('.search-input-row'), freeNote = document.getElementById('free-note');
+
+  // ─── Chequeo de permisos: si es feature Pro y el usuario no lo tiene, mostrar upgrade ───
+  if (FEATURES_PRO.includes(tab) && usuarioActivo && !puedeUsarFeature(tab)) {
+    srcRow.style.display = 'none';
+    docRow.style.display = 'none';
+    inputRow.style.display = 'none';
+    if (freeNote) freeNote.style.display = 'none';
+    mostrarUpgradeABasico(tab);
+    document.getElementById('used-notice').style.display = 'none';
+    return;
+  }
+
   srcRow.style.display = tab === 'fallos' ? 'flex' : 'none';
   docRow.style.display = tab === 'consulta' ? 'flex' : 'none';
   if (tab === 'calculadora') {
